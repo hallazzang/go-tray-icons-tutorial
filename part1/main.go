@@ -1,23 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
 
-const notifyIconMsg = WM_APP + 1
-
 func wndProc(hWnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
-	case notifyIconMsg:
-		switch nmsg := LOWORD(uint32(lParam)); nmsg {
-		case NIN_BALLOONUSERCLICK:
-			fmt.Println("balloon clicked")
-		case WM_LBUTTONDOWN:
-			fmt.Println("tray icon clicked")
-		}
 	case WM_DESTROY:
 		PostQuitMessage(0)
 	default:
@@ -48,7 +38,7 @@ func createMainWindow() (uintptr, error) {
 	hwnd, err := CreateWindowEx(
 		0,
 		wndClass,
-		windows.StringToUTF16Ptr("NotifyIcon Example"),
+		windows.StringToUTF16Ptr("Tray Icons Example"),
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -74,11 +64,8 @@ func main() {
 	var data NOTIFYICONDATA
 
 	data.CbSize = uint32(unsafe.Sizeof(data))
-	data.UFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO
+	data.UFlags = NIF_ICON
 	data.HWnd = hwnd
-	data.UCallbackMessage = notifyIconMsg
-	copy(data.SzTip[:], windows.StringToUTF16("Tray Icon"))
-	copy(data.SzInfo[:], windows.StringToUTF16("Hello from Tay Icon!"))
 
 	icon, err := LoadImage(
 		0,
@@ -96,9 +83,16 @@ func main() {
 		panic(err)
 	}
 
+	defer func() {
+		if _, err := Shell_NotifyIcon(NIM_DELETE, &data); err != nil {
+			panic(err)
+		}
+	}()
+
 	ShowWindow(hwnd, SW_SHOW)
 
 	var msg MSG
+
 	for {
 		r, err := GetMessage(&msg, 0, 0, 0)
 		if err != nil {
