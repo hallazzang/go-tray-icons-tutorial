@@ -1,4 +1,4 @@
-# Creating Tray Icons using Go - Part 1
+# Creating Tray Icons using Go in Windows - Part 1
 
 Run this example by:
 
