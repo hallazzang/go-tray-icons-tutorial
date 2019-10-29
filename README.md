@@ -7,3 +7,4 @@ Original article can be found at: https://hallazzang.github.io/post/go-tray-icon
 ## Parts
 
 - [Part 1](part1)
+- [Part 2](part2)
